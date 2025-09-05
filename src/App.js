@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import EmployeeForm from "./components/EmployeeForm";
 
 function Home() {
   return (
@@ -26,15 +27,18 @@ export default function App() {
         <nav style={{ display: "flex", gap: 16 }}>
           <Link to="/">Home</Link>
           <Link to="/about">About</Link>
+          <Link to="/employees/new">Add Employee</Link>
         </nav>
       </header>
 
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
+        <Route path="/employees/new" element={<EmployeeForm />} />
       </Routes>
     </BrowserRouter>
   );
 }
+
 
 
