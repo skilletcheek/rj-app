@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import "./EmployeeForm.css";
+import "./EmployeeForm.css"; // keep this if the CSS sits in the same folder
+// If your CSS is in src/ (not in components/), use: import "../EmployeeForm.css";
 
-function EmployeeForm() {
+export default function EmployeeForm({ onAdd }) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -12,13 +13,13 @@ function EmployeeForm() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData((s) => ({ ...s, [name]: value }));
     setSubmitted(false);
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("New Employee Added:", formData);
+    e.preventDefault();               // stop browser default form submit
+    if (onAdd) onAdd(formData);       // send data up to App
     setSubmitted(true);
     setFormData({ name: "", email: "", title: "", department: "" });
   };
@@ -31,78 +32,44 @@ function EmployeeForm() {
         <div className="row">
           <div className="field">
             <label htmlFor="name">Full Name</label>
-            <input
-              id="name"
-              name="name"
-              type="text"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="e.g., Jordan Parker"
-              required
-            />
+            <input id="name" name="name" type="text"
+                   value={formData.name} onChange={handleChange}
+                   placeholder="e.g., Jordan Parker" required />
           </div>
 
           <div className="field">
             <label htmlFor="email">Work Email</label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="e.g., jordan.parker@company.com"
-              required
-            />
+            <input id="email" name="email" type="email"
+                   value={formData.email} onChange={handleChange}
+                   placeholder="e.g., jordan.parker@company.com" required />
           </div>
         </div>
 
         <div className="row">
           <div className="field">
             <label htmlFor="title">Job Title</label>
-            <input
-              id="title"
-              name="title"
-              type="text"
-              value={formData.title}
-              onChange={handleChange}
-              placeholder="e.g., Systems Analyst"
-              required
-            />
+            <input id="title" name="title" type="text"
+                   value={formData.title} onChange={handleChange}
+                   placeholder="e.g., Systems Analyst" required />
           </div>
 
           <div className="field">
             <label htmlFor="department">Department</label>
-            <select
-              id="department"
-              name="department"
-              value={formData.department}
-              onChange={handleChange}
-              required
-            >
-              <option value="" disabled>
-                Select a department
-              </option>
-              <option>IT</option>
-              <option>HR</option>
-              <option>Finance</option>
-              <option>Operations</option>
-              <option>Marketing</option>
+            <select id="department" name="department"
+                    value={formData.department} onChange={handleChange} required>
+              <option value="" disabled>Select a department</option>
+              <option>IT</option><option>HR</option><option>Finance</option>
+              <option>Operations</option><option>Marketing</option>
             </select>
           </div>
         </div>
 
         <div className="actions">
-          <button type="submit" className="btn-primary">
-            Add Employee
-          </button>
+          <button type="submit" className="btn-primary">Add Employee</button>
         </div>
 
         {submitted && (
-          <div
-            className="notice success"
-            role="status"
-            aria-live="polite"
-          >
+          <div className="notice success" role="status" aria-live="polite">
             Employee added successfully.
           </div>
         )}
@@ -111,4 +78,3 @@ function EmployeeForm() {
   );
 }
 
-export default EmployeeForm;
