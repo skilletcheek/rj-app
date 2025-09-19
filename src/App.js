@@ -1,10 +1,12 @@
 // src/App.js
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import EmployeeForm from "./components/EmployeeForm";
 import EmployeeList from "./components/EmployeeList";
+import EditEmployeeForm from "./components/EditEmployeeForm";
 
 const LS_KEY = "rj_employees_v1";
+const genId = () => crypto.randomUUID?.() || String(Date.now() + Math.random());
 
 function Home() {
   return (
@@ -25,70 +27,81 @@ function About() {
 }
 
 export default function App() {
-  const [employees, setEmployees] = useState([]);
-  const hasLoaded = useRef(false); // guard: don't save until we've tried to load
-
-  // LOAD once on first render
-  useEffect(() => {
-    const raw = localStorage.getItem(LS_KEY);
-    console.log("[LOAD] raw from LS:", raw);
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) setEmployees(parsed);
-      } catch (e) {
-        console.warn("[LOAD] parse failed; clearing key", e);
-        localStorage.removeItem(LS_KEY);
+  // Lazy init: read LS once
+  const [employees, setEmployees] = useState(() => {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      // Back-compat: add ids if missing
+      if (Array.isArray(parsed)) {
+        return parsed.map((e) => (e.id ? e : { ...e, id: genId() }));
       }
+      return [];
+    } catch {
+      return [];
     }
-    hasLoaded.current = true; // now future changes can be saved
-  }, []);
+  });
 
-  // SAVE only after initial load has run
+  // Persist on change
   useEffect(() => {
-    if (!hasLoaded.current) return; // skip the initial empty render
-    const raw = JSON.stringify(employees);
-    console.log("[SAVE] writing to LS:", raw);
-    localStorage.setItem(LS_KEY, raw);
+    localStorage.setItem(LS_KEY, JSON.stringify(employees));
   }, [employees]);
 
-  // add from form
+  // ADD (from /employees/new)
   const handleAddEmployee = (emp) => {
     if (!emp?.name || !emp?.email || !emp?.title || !emp?.department) return;
-    setEmployees((list) => [...list, emp]);
+    setEmployees((prev) => [...prev, { ...emp, id: genId() }]);
   };
 
-  // small inline probe to view JSON quickly
-  const Debug = () => (
-    <pre style={{ background: "#f9fafb", padding: 12, borderRadius: 8 }}>
-      {JSON.stringify({ LS_KEY, employees }, null, 2)}
-    </pre>
-  );
+  // UPDATE (from /employees/edit/:id)
+  const handleUpdateEmployee = (updated) => {
+    setEmployees((prev) => prev.map((e) => (e.id === updated.id ? updated : e)));
+  };
+
+  // DELETE (from list)
+  const handleDeleteEmployee = (id) => {
+    setEmployees((prev) => prev.filter((e) => e.id !== id));
+  };
 
   return (
     <BrowserRouter>
       <header style={{ padding: 16, borderBottom: "1px solid #eee" }}>
-        <nav style={{ display: "flex", gap: 16 }}>
+        <nav style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
           <Link to="/">Home</Link>
           <Link to="/about">About</Link>
           <Link to="/employees/new">Add Employee</Link>
           <Link to="/employees">Employees</Link>
-          <Link to="/debug">Debug</Link>
         </nav>
       </header>
 
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
+
+        <Route
+          path="/employees"
+          element={
+            <EmployeeList
+              employees={employees}
+              onDelete={handleDeleteEmployee}
+            />
+          }
+        />
+
         <Route
           path="/employees/new"
           element={<EmployeeForm onAdd={handleAddEmployee} />}
         />
+
         <Route
-          path="/employees"
-          element={<EmployeeList employees={employees} />}
+          path="/employees/edit/:id"
+          element={
+            <EditEmployeeForm
+              employees={employees}
+              onUpdate={handleUpdateEmployee}
+            />
+          }
         />
-        <Route path="/debug" element={<Debug />} />
       </Routes>
     </BrowserRouter>
   );

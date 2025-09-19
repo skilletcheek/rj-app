@@ -1,47 +1,60 @@
 // src/components/EmployeeList.js
 import React from "react";
+import { Link } from "react-router-dom";
+import "./EmployeeList.css";
 
-export default function EmployeeList({ employees }) {
-  if (!employees.length) {
-    return <p style={{ padding: 16 }}>No employees yet. Add one above.</p>;
-  }
-
+export default function EmployeeList({ employees, onDelete }) {
   return (
-    <section style={{ padding: 16 }}>
-      <h2>Saved Employees</h2>
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <th style={th}>Name</th>
-              <th style={th}>Email</th>
-              <th style={th}>Title</th>
-              <th style={th}>Department</th>
-            </tr>
-          </thead>
-          <tbody>
-            {employees.map((e, i) => (
-              <tr key={i}>
-                <td style={td}>{e.name}</td>
-                <td style={td}>{e.email}</td>
-                <td style={td}>{e.title}</td>
-                <td style={td}>{e.department}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
+    <main className="employee-list">
+      <h1>Employee List</h1>
+
+      {employees.length === 0 ? (
+        <div className="empty">
+          <p>No employees yet.</p>
+          <Link to="/employees/new" className="btn-primary">Add Employee</Link>
+        </div>
+      ) : (
+        <>
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Title</th>
+                  <th>Department</th>
+                  <th style={{ width: 160 }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {employees.map((e) => (
+                  <tr key={e.id}>
+                    <td>{e.name}</td>
+                    <td>{e.email}</td>
+                    <td>{e.title}</td>
+                    <td>{e.department}</td>
+                    <td className="actions">
+                      <Link to={`/employees/edit/${e.id}`} className="btn-link">Edit</Link>
+                      <button
+                        className="btn-danger"
+                        onClick={() => onDelete?.(e.id)}
+                        aria-label={`Delete ${e.name}`}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="footer-actions">
+            <Link to="/employees/new" className="btn-primary">Add Employee</Link>
+          </div>
+        </>
+      )}
+    </main>
   );
 }
 
-const th = {
-  textAlign: "left",
-  borderBottom: "1px solid #e5e7eb",
-  padding: "8px 6px",
-  fontWeight: 600
-};
-const td = {
-  borderBottom: "1px solid #f1f5f9",
-  padding: "8px 6px"
-};
